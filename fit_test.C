@@ -125,24 +125,29 @@ int main(int argc,char **argv)
 	h->Fit(f,"M","");
 	pars = f->GetParameters();
 
-	TMinuit *gMinuit = new TMinuit(2);
+	TMinuit *gMinuit = new TMinuit(7);
     gMinuit->SetFCN(myfcn);
-    Double_t errorarglist[7] = {10,0.01,0.01,1,0.01,0.01,0.01};
-    Double_t arglist[7] = {500,500,5000,500,500,500,500};
+    Double_t arglist[10];
     Int_t ierflg = 0;
 
-    //arglist[0] = 1;
-    gMinuit->mnexcm("SET ERR", errorarglist ,7,ierflg);
+    arglist[0] = 1;
+    gMinuit->mnexcm("SET ERR", arglist ,1,ierflg);
 	//double step[7] = {100,0.01,1,0.1,0.01,0.01,0.01};
 	double step[7];
 	for(int i=0;i<7;i++){
-		step[i] = pars[i]/100.0;
+		step[i] = pars[i]/10.0;
 	}
 	step[2] = 0.01;
 
 	TString parnames[7]={"C","#alpha","#mu","#sigma","#beta","#lambda","#gamma"};	
+
+	double low[7] = {0,0,0,0,0,0,0};
+	double up[7] = {0,0,0,0,0,0,0};
+	low[4] = 0; up[4] = 1;
+	low[5] = -1; up[5] = 0;
+	low[6] = 0; up[6] = 1;
 	for(int i=0;i<7;i++)
-		gMinuit->mnparm(i,parnames[i],pars[i],step[i],0,0,ierflg);
+		gMinuit->mnparm(i,parnames[i],pars[i],step[i],low[i],up[i],ierflg);
 	if(source=="Ge68"){
 		start = pars[2]-pars[3]*4;
 		end = pars[2]+pars[3];
@@ -150,7 +155,9 @@ int main(int argc,char **argv)
 		start = int(mean-4*sigma);
 		end =  int(mean-5*sigma)+int(5*sigma)*2;
 	}
-	gMinuit->mnexcm("MIGRAD", arglist ,1,ierflg);
+    arglist[0] = 5000;
+    arglist[1] = 1;
+	gMinuit->mnexcm("MIGRAD", arglist ,2,ierflg);
 /*
 	if(source=="Ge68"){
 		h->Fit(f,"M","",pars[2]-pars[3]*4,pars[2]+pars[3]);
